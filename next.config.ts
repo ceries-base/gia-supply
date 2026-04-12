@@ -2,7 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "export",
-  basePath: process.env.NODE_ENV === "production" ? "/gia-supply" : "",
+  basePath: process.env.GITHUB_ACTIONS ? "/gia-supply" : "",
+  assetPrefix: process.env.GITHUB_ACTIONS ? "/gia-supply" : "",
   images: {
     unoptimized: true,
   },
