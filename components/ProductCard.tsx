@@ -117,6 +117,22 @@ export default function ProductCard({ product }: Props) {
           </div>
         )}
 
+        {/* Variant stock breakdown */}
+        {product.variant_details.length > 0 && (
+          <div className="max-h-24 overflow-y-auto rounded-lg border border-gray-100 divide-y divide-gray-50">
+            {product.variant_details.map((v, i) => (
+              <div key={i} className="flex items-center justify-between px-2 py-1 text-[10px]">
+                <span className="text-gray-600 truncate max-w-[75%]">
+                  {v.color}{v.length ? ` · ${v.length}` : ''}
+                </span>
+                <span className={`font-semibold tabular-nums ${v.qty > 0 ? 'text-emerald-600' : 'text-gray-300'}`}>
+                  {v.qty}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Length pills */}
         {lengths && lengths.length > 0 && (
           <div className="flex flex-wrap gap-1">
@@ -137,7 +153,9 @@ export default function ProductCard({ product }: Props) {
               </span>
             )}
             <span className={`text-[11px] font-medium ${total_qty > 0 ? 'text-emerald-600' : 'text-gray-400'}`}>
-              {total_qty > 0 ? `${total_qty.toLocaleString()} in stock` : 'Out of stock'}
+              {total_qty > 0
+                ? `${total_qty.toLocaleString()} in stock · ${product.variant_details.length} variant${product.variant_details.length === 1 ? '' : 's'}`
+                : 'Out of stock'}
             </span>
           </div>
         </div>
