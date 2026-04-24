@@ -15,6 +15,8 @@ export default function ProductModal({ product, onClose }: Props) {
   const { addWithQty } = useCart()
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
+  const [selectedColor, setSelectedColor] = useState<string | null>(null)
+  const [selectedLength, setSelectedLength] = useState<string | null>(null)
 
   const {
     title,
@@ -29,9 +31,24 @@ export default function ProductModal({ product, onClose }: Props) {
     comp_price,
     total_qty,
     lengths,
+    variant_details,
   } = product
 
-  const displayPrice = comp_price ?? price
+  // Find the matching variant for selected color/length to get its price + qty
+  const selectedVariant = variant_details.find(v =>
+    (!selectedColor || v.color === selectedColor) &&
+    (!selectedLength || v.length === selectedLength)
+  ) ?? null
+
+  const variantPrice = selectedVariant?.price ?? null
+  const variantQty = selectedVariant?.qty ?? total_qty
+
+  // Price range across all variants
+  const allPrices = variant_details.map(v => v.price).filter((p): p is number => p !== null)
+  const minPrice = allPrices.length ? Math.min(...allPrices) : null
+  const maxPrice = allPrices.length ? Math.max(...allPrices) : null
+
+  const displayPrice = variantPrice ?? comp_price ?? price
 
   // Close on Escape
   useEffect(() => {
@@ -110,65 +127,82 @@ export default function ProductModal({ product, onClose }: Props) {
               </div>
 
               {/* Price */}
-              {displayPrice != null ? (
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-[#e94560]">${displayPrice.toFixed(2)}</span>
-                  {comp_price != null && price != null && price !== comp_price && (
-                    <span className="text-gray-300 text-sm line-through">${price.toFixed(2)}</span>
-                  )}
-                  <span className="text-[11px] text-gray-400 ml-1">/ unit</span>
-                </div>
-              ) : (
-                <span className="text-gray-400 text-sm">Price TBD</span>
-              )}
+              <div className="flex items-baseline gap-2">
+                {displayPrice != null ? (
+                  <>
+                    <span className="text-2xl font-bold text-[#e94560]">${displayPrice.toFixed(2)}</span>
+                    {minPrice !== null && maxPrice !== null && minPrice !== maxPrice && !selectedVariant && (
+                      <span className="text-[11px] text-gray-400">– ${maxPrice.toFixed(2)}</span>
+                    )}
+                    <span className="text-[11px] text-gray-400 ml-1">/ unit</span>
+                  </>
+                ) : (
+                  <span className="text-gray-400 text-sm">Price TBD</span>
+                )}
+              </div>
 
               {/* Description */}
               {description && (
                 <p className="text-[13px] text-gray-600 leading-relaxed">{description}</p>
               )}
 
-              {/* Swatches */}
-              {color_swatches.length > 0 && (
+              {/* Colors — clickable */}
+              {colors.length > 0 && (
                 <div>
                   <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
-                    Colors ({colors.length})
+                    Color {selectedColor ? <span className="normal-case font-normal">— {selectedColor}</span> : `(${colors.length})`}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
-                    {color_swatches.map(({ code, url }) => (
-                      <img
-                        key={code}
-                        src={url}
-                        alt={code}
-                        title={code}
-                        className="w-6 h-6 rounded-full object-cover border border-gray-100 shadow-sm"
-                      />
-                    ))}
-                    {colors.length > color_swatches.length && (
-                      <span className="text-[10px] text-gray-400 self-center ml-1">
-                        +{colors.length - color_swatches.length} more
-                      </span>
-                    )}
+                    {colors.map((code) => {
+                      const swatch = color_swatches.find(s => s.code === code)
+                      const isSelected = selectedColor === code
+                      return swatch ? (
+                        <img
+                          key={code}
+                          src={swatch.url}
+                          alt={code}
+                          title={code}
+                          onClick={() => setSelectedColor(isSelected ? null : code)}
+                          className={`w-7 h-7 rounded-full object-cover cursor-pointer transition-all
+                            ${isSelected ? 'ring-2 ring-gray-900 ring-offset-1 scale-110' : 'border border-gray-100 hover:scale-105'}`}
+                        />
+                      ) : (
+                        <button
+                          key={code}
+                          title={code}
+                          onClick={() => setSelectedColor(isSelected ? null : code)}
+                          className={`text-[10px] px-2 py-0.5 rounded-full border transition-all
+                            ${isSelected ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-500 hover:border-gray-400'}`}
+                        >
+                          {code}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               )}
 
-              {/* Lengths */}
+              {/* Lengths — clickable */}
               {lengths && lengths.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Lengths</p>
+                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Length</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {lengths.map((l) => (
-                      <span key={l} className="text-[11px] font-semibold px-2.5 py-1 rounded-full border border-gray-200 text-gray-600 bg-gray-50">
+                    {lengths.map((l) => {
+                      const isSelected = selectedLength === l
+                      return (
+                      <button key={l} onClick={() => setSelectedLength(isSelected ? null : l)}
+                        className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-all
+                          ${isSelected ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-600 bg-gray-50 hover:border-gray-400'}`}>
                         {l}
-                      </span>
-                    ))}
+                      </button>
+                    )})}
                   </div>
                 </div>
               )}
 
               {/* Stock */}
-              <p className={`text-[12px] font-medium ${total_qty > 0 ? 'text-emerald-600' : 'text-gray-400'}`}>
-                {total_qty > 0 ? `${total_qty.toLocaleString()} units in stock` : 'Out of stock'}
+              <p className={`text-[12px] font-medium ${variantQty > 0 ? 'text-emerald-600' : 'text-gray-400'}`}>
+                {variantQty > 0 ? `${variantQty.toLocaleString()} units in stock` : 'Out of stock'}
               </p>
 
               {/* Qty + Add to Cart */}
@@ -183,8 +217,8 @@ export default function ProductModal({ product, onClose }: Props) {
                   </button>
                   <span className="text-[14px] font-semibold text-gray-900 w-8 text-center">{qty}</span>
                   <button
-                    onClick={() => setQty((q) => Math.min(total_qty || 999, q + 1))}
-                    disabled={total_qty === 0}
+                    onClick={() => setQty((q) => Math.min(variantQty || 999, q + 1))}
+                    disabled={variantQty === 0}
                     className="text-gray-400 hover:text-gray-700 transition-colors disabled:opacity-30"
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -194,9 +228,9 @@ export default function ProductModal({ product, onClose }: Props) {
                 {/* Add button */}
                 <button
                   onClick={handleAdd}
-                  disabled={total_qty === 0}
+                  disabled={variantQty === 0}
                   className={`flex-1 flex items-center justify-center gap-2 text-[13px] font-semibold py-2.5 rounded-xl transition-all duration-200
-                    ${total_qty === 0
+                    ${variantQty === 0
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : added
                       ? 'bg-emerald-500 text-white'

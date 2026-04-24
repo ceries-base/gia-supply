@@ -1,3 +1,10 @@
+export interface VariantDetail {
+  color: string
+  length: string | null
+  qty: number
+  price: number | null
+}
+
 export interface Product {
   company: string
   title: string
@@ -14,4 +21,5 @@ export interface Product {
   in_shopify: boolean
   pallet_codes: number[]
   lengths: string[]
+  variant_details: VariantDetail[]
 }
