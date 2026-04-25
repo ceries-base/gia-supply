@@ -1,7 +1,9 @@
 'use client'
 
-import { X, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react'
+import { X, Minus, Plus, ShoppingBag, Trash2, Loader2, Check } from 'lucide-react'
 import Image from 'next/image'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useCart } from '@/lib/cart'
 
 interface Props {
@@ -11,6 +13,51 @@ interface Props {
 
 export default function CartDrawer({ open, onClose }: Props) {
   const { items, remove, updateQty, totalItems, totalPrice, clear } = useCart()
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [note, setNote] = useState('')
+  const router = useRouter()
+
+  async function handleRequestQuote() {
+    if (items.length === 0 || submitting) return
+    setSubmitting(true)
+    try {
+      const payload = {
+        items: items.map(({ product, qty }) => ({
+          sku:     product.variant_details?.[0]?.sku || product.title,
+          title:   product.title,
+          variant: product.hair_type || product.product_type || null,
+          qty,
+          price:   product.comp_price ?? product.price ?? 0,
+        })),
+        note: note.trim() || null,
+        submittedBy: document.cookie.match(/CF_Authorization=([^;]+)/)?.[1]
+          ? 'cf-user'
+          : 'gia-catalog',
+      }
+      const r = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!r.ok) {
+        const d = await r.json()
+        throw new Error(d.error || 'Failed to submit order')
+      }
+      setSubmitted(true)
+      clear()
+      setTimeout(() => {
+        setSubmitted(false)
+        setNote('')
+        onClose()
+        router.push('/orders')
+      }, 1500)
+    } catch (e: any) {
+      alert(e.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <>
@@ -112,8 +159,29 @@ export default function CartDrawer({ open, onClose }: Props) {
               <span className="text-sm text-gray-500">Subtotal</span>
               <span className="text-base font-bold text-gray-900">${totalPrice.toFixed(2)}</span>
             </div>
-            <button className="w-full bg-gray-900 text-white text-sm font-semibold py-3.5 rounded-xl hover:bg-gray-800 transition-colors">
-              Request Quote
+            <textarea
+              value={note}
+              onChange={e => setNote(e.target.value)}
+              placeholder="Add a note (optional)"
+              rows={2}
+              className="w-full text-[12px] border border-gray-200 rounded-lg px-3 py-2 text-gray-700 placeholder-gray-300 resize-none focus:outline-none focus:border-gray-400"
+            />
+            <button
+              onClick={handleRequestQuote}
+              disabled={submitting || submitted}
+              className={`w-full flex items-center justify-center gap-2 text-sm font-semibold py-3.5 rounded-xl transition-all duration-200
+                ${submitted
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-60'
+                }`}
+            >
+              {submitted ? (
+                <><Check className="w-4 h-4" /> Order Submitted</>
+              ) : submitting ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Submitting…</>
+              ) : (
+                'Request Quote'
+              )}
             </button>
             <button
               onClick={clear}

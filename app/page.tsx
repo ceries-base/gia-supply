@@ -1,7 +1,8 @@
 'use client'
 
 import { useMemo, useState, useEffect } from 'react'
-import { Search, X, ShoppingBag } from 'lucide-react'
+import { Search, X, ShoppingBag, ClipboardList } from 'lucide-react'
+import Link from 'next/link'
 import productsData from '@/public/products.json'
 import type { Product } from '@/lib/types'
 import ProductCard from '@/components/ProductCard'
@@ -96,6 +97,16 @@ export default function CatalogPage() {
             <div className="text-[9px] text-gray-400 font-semibold tracking-[0.15em] uppercase mt-0.5">Wholesale Beauty</div>
           </div>
 
+          {/* Nav */}
+          <div className="flex items-center gap-3">
+          <Link
+            href="/orders"
+            className="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors px-3 py-2.5"
+          >
+            <ClipboardList className="w-4 h-4" />
+            <span className="hidden sm:inline">Orders</span>
+          </Link>
+
           {/* Cart */}
           <button
             onClick={() => setCartOpen(true)}
@@ -109,6 +120,7 @@ export default function CatalogPage() {
               </span>
             )}
           </button>
+          </div>
         </div>
       </header>
 
