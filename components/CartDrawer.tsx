@@ -158,10 +158,6 @@ export default function CartDrawer({ open, onClose }: Props) {
         {/* Footer */}
         {items.length > 0 && (
           <div className="px-6 py-5 border-t border-gray-100 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">Subtotal</span>
-              <span className="text-base font-bold text-gray-900">${totalPrice.toFixed(2)}</span>
-            </div>
             <textarea
               value={note}
               onChange={e => setNote(e.target.value)}
@@ -183,7 +179,7 @@ export default function CartDrawer({ open, onClose }: Props) {
               ) : submitting ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Submitting…</>
               ) : (
-                'Request Quote'
+                'Create Order'
               )}
             </button>
             <button

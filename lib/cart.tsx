@@ -1,7 +1,9 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react'
 import type { Product } from './types'
+
+const STORAGE_KEY = 'gia-cart'
 
 export interface CartItem {
   product: Product
@@ -28,7 +30,17 @@ function itemKey(title: string, color: string | null, length: string | null) {
 const CartContext = createContext<CartContextValue | null>(null)
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([])
+  const [items, setItems] = useState<CartItem[]>(() => {
+    if (typeof window === 'undefined') return []
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      return saved ? JSON.parse(saved) : []
+    } catch { return [] }
+  })
+
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)) } catch {}
+  }, [items])
 
   const add = useCallback((product: Product) => {
     const key = itemKey(product.title, null, null)
