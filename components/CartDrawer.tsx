@@ -24,7 +24,7 @@ export default function CartDrawer({ open, onClose }: Props) {
     try {
       const payload = {
         items: items.map(({ product, qty }) => ({
-          sku:     product.variant_details?.[0]?.sku || product.title,
+          sku:     product.title,
           title:   product.title,
           variant: product.hair_type || product.product_type || null,
           qty,
