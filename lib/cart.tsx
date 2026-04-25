@@ -6,17 +6,23 @@ import type { Product } from './types'
 export interface CartItem {
   product: Product
   qty: number
+  color: string | null
+  length: string | null
 }
 
 interface CartContextValue {
   items: CartItem[]
   add: (product: Product) => void
-  addWithQty: (product: Product, qty: number) => void
-  remove: (title: string) => void
-  updateQty: (title: string, qty: number) => void
+  addWithQty: (product: Product, qty: number, color?: string | null, length?: string | null) => void
+  remove: (key: string) => void
+  updateQty: (key: string, qty: number) => void
   clear: () => void
   totalItems: number
   totalPrice: number
+}
+
+function itemKey(title: string, color: string | null, length: string | null) {
+  return `${title}||${color ?? ''}||${length ?? ''}`
 }
 
 const CartContext = createContext<CartContextValue | null>(null)
@@ -25,40 +31,38 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
 
   const add = useCallback((product: Product) => {
+    const key = itemKey(product.title, null, null)
     setItems((prev) => {
-      const existing = prev.find((i) => i.product.title === product.title)
+      const existing = prev.find((i) => itemKey(i.product.title, i.color, i.length) === key)
       if (existing) {
-        return prev.map((i) =>
-          i.product.title === product.title ? { ...i, qty: i.qty + 1 } : i
-        )
+        return prev.map((i) => itemKey(i.product.title, i.color, i.length) === key ? { ...i, qty: i.qty + 1 } : i)
       }
-      return [...prev, { product, qty: 1 }]
+      return [...prev, { product, qty: 1, color: null, length: null }]
     })
   }, [])
 
-  const addWithQty = useCallback((product: Product, qty: number) => {
+  const addWithQty = useCallback((product: Product, qty: number, color: string | null = null, length: string | null = null) => {
     if (qty <= 0) return
+    const key = itemKey(product.title, color, length)
     setItems((prev) => {
-      const existing = prev.find((i) => i.product.title === product.title)
+      const existing = prev.find((i) => itemKey(i.product.title, i.color, i.length) === key)
       if (existing) {
-        return prev.map((i) =>
-          i.product.title === product.title ? { ...i, qty: i.qty + qty } : i
-        )
+        return prev.map((i) => itemKey(i.product.title, i.color, i.length) === key ? { ...i, qty: i.qty + qty } : i)
       }
-      return [...prev, { product, qty }]
+      return [...prev, { product, qty, color, length }]
     })
   }, [])
 
-  const remove = useCallback((title: string) => {
-    setItems((prev) => prev.filter((i) => i.product.title !== title))
+  const remove = useCallback((key: string) => {
+    setItems((prev) => prev.filter((i) => itemKey(i.product.title, i.color, i.length) !== key))
   }, [])
 
-  const updateQty = useCallback((title: string, qty: number) => {
+  const updateQty = useCallback((key: string, qty: number) => {
     if (qty <= 0) {
-      setItems((prev) => prev.filter((i) => i.product.title !== title))
+      setItems((prev) => prev.filter((i) => itemKey(i.product.title, i.color, i.length) !== key))
     } else {
       setItems((prev) =>
-        prev.map((i) => (i.product.title === title ? { ...i, qty } : i))
+        prev.map((i) => itemKey(i.product.title, i.color, i.length) === key ? { ...i, qty } : i)
       )
     }
   }, [])

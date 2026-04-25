@@ -23,10 +23,10 @@ export default function CartDrawer({ open, onClose }: Props) {
     setSubmitting(true)
     try {
       const payload = {
-        items: items.map(({ product, qty }) => ({
+        items: items.map(({ product, qty, color, length }) => ({
           sku:     product.title,
           title:   product.title,
-          variant: product.hair_type || product.product_type || null,
+          variant: [color, length].filter(Boolean).join(' · ') || product.hair_type || product.product_type || null,
           qty,
           price:   product.comp_price ?? product.price ?? 0,
         })),
@@ -100,10 +100,11 @@ export default function CartDrawer({ open, onClose }: Props) {
               <p className="text-gray-400 text-sm mt-1">Add products to get started</p>
             </div>
           ) : (
-            items.map(({ product, qty }) => {
+            items.map(({ product, qty, color, length }) => {
               const displayPrice = product.comp_price ?? product.price
+              const key = `${product.title}||${color ?? ''}||${length ?? ''}`
               return (
-                <div key={product.title} className="flex gap-3">
+                <div key={key} className="flex gap-3">
                   {/* Image */}
                   <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 relative">
                     {product.image_url ? (
@@ -116,7 +117,9 @@ export default function CartDrawer({ open, onClose }: Props) {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] font-semibold text-gray-900 line-clamp-2 leading-snug">{product.title}</p>
-                    <p className="text-[11px] text-gray-400 mt-0.5">{product.company}</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">
+                      {product.company}{color ? ` · ${color}` : ''}{length ? ` · ${length}` : ''}
+                    </p>
                     {displayPrice != null && (
                       <p className="text-[13px] font-bold text-[#e94560] mt-0.5">${displayPrice.toFixed(2)}</p>
                     )}
@@ -125,21 +128,21 @@ export default function CartDrawer({ open, onClose }: Props) {
                   {/* Qty + remove */}
                   <div className="flex flex-col items-end gap-2">
                     <button
-                      onClick={() => remove(product.title)}
+                      onClick={() => remove(key)}
                       className="text-gray-300 hover:text-red-400 transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                     <div className="flex items-center gap-1.5 border border-gray-200 rounded-lg px-1.5 py-0.5">
                       <button
-                        onClick={() => updateQty(product.title, qty - 1)}
+                        onClick={() => updateQty(key, qty - 1)}
                         className="text-gray-400 hover:text-gray-700"
                       >
                         <Minus className="w-3 h-3" />
                       </button>
                       <span className="text-[13px] font-medium text-gray-900 w-5 text-center">{qty}</span>
                       <button
-                        onClick={() => updateQty(product.title, qty + 1)}
+                        onClick={() => updateQty(key, qty + 1)}
                         className="text-gray-400 hover:text-gray-700"
                       >
                         <Plus className="w-3 h-3" />

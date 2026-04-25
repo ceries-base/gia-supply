@@ -66,7 +66,7 @@ export default function ProductModal({ product, onClose }: Props) {
   }, [])
 
   function handleAdd() {
-    addWithQty(product, qty)
+    addWithQty(product, qty, selectedColor, selectedLength)
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
   }
