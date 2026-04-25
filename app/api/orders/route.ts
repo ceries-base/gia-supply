@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const runtime = 'edge'
+
 const OMS_BASE      = process.env.OMS_BASE_URL!
 const CF_CLIENT_ID  = process.env.GIA_CF_CLIENT_ID!
 const CF_CLIENT_SECRET = process.env.GIA_CF_CLIENT_SECRET!
