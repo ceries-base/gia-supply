@@ -11,9 +11,9 @@
   },
   "dependencies": {
     "lucide-react": "^0.576.0",
-    "next": "16.1.6",
-    "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "next": "^15.2.4",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
   },
   "devDependencies": {
     "@cloudflare/next-on-pages": "^1.13.16",
