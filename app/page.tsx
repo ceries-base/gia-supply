@@ -3,20 +3,15 @@
 import { useMemo, useState, useEffect } from 'react'
 import { Search, X, ShoppingBag, ClipboardList } from 'lucide-react'
 import Link from 'next/link'
-import productsData from '@/public/products.json'
 import type { Product } from '@/lib/types'
 import ProductCard from '@/components/ProductCard'
 import FilterBar from '@/components/FilterBar'
 import CartDrawer from '@/components/CartDrawer'
 import { useCart } from '@/lib/cart'
 
-const products = productsData as Product[]
-
-const allBrands = Array.from(new Set(products.map((p) => p.company).filter(Boolean))).sort()
-const allTypes = Array.from(new Set(products.map((p) => p.product_type).filter(Boolean) as string[])).sort()
-const allHairTypes = Array.from(new Set(products.map((p) => p.hair_type).filter(Boolean) as string[])).sort()
-
 export default function CatalogPage() {
+  const [products, setProducts] = useState<Product[]>([])
+  const [loadingProducts, setLoadingProducts] = useState(true)
   const [query, setQuery] = useState('')
   const [filters, setFilters] = useState<{ brands: Set<string>; types: Set<string>; hairTypes: Set<string> }>({
     brands: new Set(),
@@ -27,6 +22,18 @@ export default function CatalogPage() {
   const [sort, setSort] = useState<'default' | 'price-asc' | 'price-desc' | 'stock-desc'>('default')
 
   const { totalItems } = useCart()
+
+  // Fetch products from OMS
+  useEffect(() => {
+    fetch('/api/products')
+      .then(r => r.json())
+      .then(data => { setProducts(Array.isArray(data) ? data : []); setLoadingProducts(false) })
+      .catch(() => setLoadingProducts(false))
+  }, [])
+
+  const allBrands = useMemo(() => Array.from(new Set(products.map(p => p.company).filter(Boolean))).sort(), [products])
+  const allTypes = useMemo(() => Array.from(new Set(products.map(p => p.product_type).filter(Boolean) as string[])).sort(), [products])
+  const allHairTypes = useMemo(() => Array.from(new Set(products.map(p => p.hair_type).filter(Boolean) as string[])).sort(), [products])
 
   // Restore state from URL on mount
   useEffect(() => {
@@ -178,13 +185,18 @@ export default function CatalogPage() {
           </div>
 
           {/* Grid — full width now */}
-          {filtered.length === 0 ? (
+          {loadingProducts ? (
+            <div className="flex items-center justify-center py-24 text-gray-300">
+              <Search className="w-6 h-6 animate-pulse opacity-40" />
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-gray-400">
               <Search className="w-10 h-10 mb-3 opacity-30" />
               <p className="text-sm font-medium">No products found</p>
               <p className="text-xs mt-1">Try different search terms or clear filters</p>
             </div>
-          ) : (
+          ) : null}
+          {!loadingProducts && filtered.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {filtered.map((p, i) => (
                 <ProductCard key={`${p.company}-${p.title}-${i}`} product={p} />

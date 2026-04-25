@@ -23,13 +23,18 @@ export default function CartDrawer({ open, onClose }: Props) {
     setSubmitting(true)
     try {
       const payload = {
-        items: items.map(({ product, qty, color, length }) => ({
-          sku:     product.title,
-          title:   product.title,
-          variant: [color, length].filter(Boolean).join(' · ') || product.hair_type || product.product_type || null,
-          qty,
-          price:   product.comp_price ?? product.price ?? 0,
-        })),
+        items: items.map(({ product, qty, color, length }) => {
+          const variant = product.variant_details.find(v =>
+            (!color || v.color === color) && (!length || v.length === length)
+          )
+          return {
+            sku:     variant?.sku || product.title,
+            title:   product.title,
+            variant: [color, length].filter(Boolean).join(' · ') || product.hair_type || product.product_type || null,
+            qty,
+            price:   variant?.price ?? product.comp_price ?? product.price ?? 0,
+          }
+        }),
         note: note.trim() || null,
         submittedBy: document.cookie.match(/CF_Authorization=([^;]+)/)?.[1]
           ? 'cf-user'

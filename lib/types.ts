@@ -1,5 +1,6 @@
 export interface VariantDetail {
-  color: string
+  sku: string | null
+  color: string | null
   length: string | null
   qty: number
   price: number | null
