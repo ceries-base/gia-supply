@@ -82,7 +82,7 @@ export default function CatalogPage() {
     if (sort === 'price-desc') return [...base].sort((a, b) => (b.comp_price ?? b.price ?? 0) - (a.comp_price ?? a.price ?? 0))
     if (sort === 'stock-desc') return [...base].sort((a, b) => b.total_qty - a.total_qty)
     return base
-  }, [query, filters, sort])
+  }, [query, filters, sort, products])
 
   const activeFilterCount = filters.brands.size + filters.types.size + filters.hairTypes.size
 

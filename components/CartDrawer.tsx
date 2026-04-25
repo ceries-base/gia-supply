@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default function CartDrawer({ open, onClose }: Props) {
-  const { items, remove, updateQty, totalItems, totalPrice, clear } = useCart()
+  const { items, remove, updateQty, totalItems, clear } = useCart()
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [note, setNote] = useState('')
