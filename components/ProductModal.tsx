@@ -215,7 +215,14 @@ export default function ProductModal({ product, onClose }: Props) {
                   >
                     <Minus className="w-3.5 h-3.5" />
                   </button>
-                  <span className="text-[14px] font-semibold text-gray-900 w-8 text-center">{qty}</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={variantQty || 999}
+                    value={qty}
+                    onChange={(e) => setQty(Math.max(1, Math.min(variantQty || 999, parseInt(e.target.value) || 1)))}
+                    className="text-[14px] font-semibold text-gray-900 w-12 text-center bg-transparent focus:outline-none"
+                  />
                   <button
                     onClick={() => setQty((q) => Math.min(variantQty || 999, q + 1))}
                     disabled={variantQty === 0}
