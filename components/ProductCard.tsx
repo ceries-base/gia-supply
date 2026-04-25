@@ -1,10 +1,9 @@
 'use client'
 
 import Image from 'next/image'
-import { Package, ShoppingCart, Check } from 'lucide-react'
+import { Package } from 'lucide-react'
 import { useState } from 'react'
 import type { Product } from '@/lib/types'
-import { useCart } from '@/lib/cart'
 import ProductModal from './ProductModal'
 
 interface Props {
@@ -26,17 +25,9 @@ export default function ProductCard({ product }: Props) {
     lengths,
   } = product
 
-  const { add } = useCart()
-  const [added, setAdded] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
 
   const displayPrice = comp_price ?? price
-
-  function handleAdd() {
-    add(product)
-    setAdded(true)
-    setTimeout(() => setAdded(false), 1800)
-  }
 
   return (
     <>
@@ -160,30 +151,6 @@ export default function ProductCard({ product }: Props) {
           </div>
         </div>
 
-        {/* Add to Cart */}
-        <button
-          onClick={(e) => { e.stopPropagation(); handleAdd() }}
-          disabled={total_qty === 0}
-          className={`mt-2 w-full flex items-center justify-center gap-2 text-[13px] font-semibold py-2.5 rounded-xl transition-all duration-200
-            ${total_qty === 0
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : added
-              ? 'bg-emerald-500 text-white'
-              : 'bg-white text-gray-900 border border-gray-200 hover:border-gray-400 hover:bg-gray-50'
-            }`}
-        >
-          {added ? (
-            <>
-              <Check className="w-3.5 h-3.5" />
-              Added
-            </>
-          ) : (
-            <>
-              <ShoppingCart className="w-3.5 h-3.5" />
-              Add to Cart
-            </>
-          )}
-        </button>
       </div>
     </div>
     </>
