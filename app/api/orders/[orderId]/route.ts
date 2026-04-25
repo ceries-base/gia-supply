@@ -14,9 +14,9 @@ function omsHeaders() {
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
-  const { orderId } = params
+  const { orderId } = await params
   const r = await fetch(`${OMS_BASE}/api/gia-supply/orders/${orderId}`, {
     method: 'DELETE',
     headers: omsHeaders(),
