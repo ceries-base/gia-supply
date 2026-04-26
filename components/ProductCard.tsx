@@ -5,6 +5,7 @@ import { Package } from 'lucide-react'
 import { useState } from 'react'
 import type { Product } from '@/lib/types'
 import ProductModal from './ProductModal'
+import { getSwatchUrl } from '@/lib/colorSwatches'
 
 interface Props {
   product: Product
@@ -28,6 +29,10 @@ export default function ProductCard({ product }: Props) {
   const [modalOpen, setModalOpen] = useState(false)
 
   const displayPrice = comp_price ?? price
+
+  const swatches = product.colors
+    .map(c => ({ code: c, url: getSwatchUrl(c) }))
+    .filter((s): s is { code: string; url: string } => s.url !== null)
 
   return (
     <>
@@ -89,9 +94,9 @@ export default function ProductCard({ product }: Props) {
         </div>
 
         {/* Swatches */}
-        {color_swatches.length > 0 && (
+        {swatches.length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {color_swatches.slice(0, 8).map(({ code, url }) => (
+            {swatches.slice(0, 8).map(({ code, url }) => (
               <img
                 key={code}
                 src={url}
@@ -100,9 +105,9 @@ export default function ProductCard({ product }: Props) {
                 className="w-5 h-5 rounded-full object-cover border border-gray-100"
               />
             ))}
-            {color_swatches.length > 8 && (
+            {swatches.length > 8 && (
               <span className="w-5 h-5 rounded-full bg-gray-100 text-gray-400 text-[9px] font-bold flex items-center justify-center">
-                +{color_swatches.length - 8}
+                +{swatches.length - 8}
               </span>
             )}
           </div>
