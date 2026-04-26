@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { X, Minus, Plus, ShoppingCart, Check, Package } from 'lucide-react'
 import type { Product } from '@/lib/types'
 import { useCart } from '@/lib/cart'
+import { getSwatchUrl } from '@/lib/colorSwatches'
 
 interface Props {
   product: Product
@@ -14,6 +15,7 @@ interface Props {
 export default function ProductModal({ product, onClose }: Props) {
   const { addWithQty } = useCart()
   const [qty, setQty] = useState(1)
+  const [qtyInput, setQtyInput] = useState('1')
   const [added, setAdded] = useState(false)
   const [selectedColor, setSelectedColor] = useState<string | null>(null)
   const [selectedLength, setSelectedLength] = useState<string | null>(null)
@@ -154,26 +156,19 @@ export default function ProductModal({ product, onClose }: Props) {
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {colors.map((code) => {
-                      const swatch = color_swatches.find(s => s.code === code)
+                      const swatchUrl = getSwatchUrl(code)
                       const isSelected = selectedColor === code
-                      return swatch ? (
-                        <img
-                          key={code}
-                          src={swatch.url}
-                          alt={code}
-                          title={code}
-                          onClick={() => setSelectedColor(isSelected ? null : code)}
-                          className={`w-7 h-7 rounded-full object-cover cursor-pointer transition-all
-                            ${isSelected ? 'ring-2 ring-gray-900 ring-offset-1 scale-110' : 'border border-gray-100 hover:scale-105'}`}
-                        />
-                      ) : (
+                      return (
                         <button
                           key={code}
                           title={code}
                           onClick={() => setSelectedColor(isSelected ? null : code)}
-                          className={`text-[10px] px-2 py-0.5 rounded-full border transition-all
+                          className={`flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded-full border transition-all
                             ${isSelected ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-500 hover:border-gray-400'}`}
                         >
+                          {swatchUrl && (
+                            <img src={swatchUrl} alt={code} className="w-3.5 h-3.5 rounded-full object-cover flex-shrink-0" />
+                          )}
                           {code}
                         </button>
                       )
@@ -210,21 +205,30 @@ export default function ProductModal({ product, onClose }: Props) {
                 {/* Stepper */}
                 <div className="flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-2">
                   <button
-                    onClick={() => setQty((q) => Math.max(1, q - 1))}
+                    onClick={() => { const n = Math.max(1, qty - 1); setQty(n); setQtyInput(String(n)) }}
                     className="text-gray-400 hover:text-gray-700 transition-colors"
                   >
                     <Minus className="w-3.5 h-3.5" />
                   </button>
                   <input
-                    type="number"
-                    min={1}
-                    max={variantQty || 999}
-                    value={qty}
-                    onChange={(e) => setQty(Math.max(1, Math.min(variantQty || 999, parseInt(e.target.value) || 1)))}
+                    type="text"
+                    inputMode="numeric"
+                    value={qtyInput}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/\D/g, '')
+                      setQtyInput(raw)
+                      const n = parseInt(raw)
+                      if (!isNaN(n) && n >= 1) setQty(Math.min(variantQty || 999, n))
+                    }}
+                    onBlur={() => {
+                      const n = Math.max(1, Math.min(variantQty || 999, parseInt(qtyInput) || 1))
+                      setQty(n)
+                      setQtyInput(String(n))
+                    }}
                     className="text-[14px] font-semibold text-gray-900 w-12 text-center bg-transparent focus:outline-none"
                   />
                   <button
-                    onClick={() => setQty((q) => Math.min(variantQty || 999, q + 1))}
+                    onClick={() => { const n = Math.min(variantQty || 999, qty + 1); setQty(n); setQtyInput(String(n)) }}
                     disabled={variantQty === 0}
                     className="text-gray-400 hover:text-gray-700 transition-colors disabled:opacity-30"
                   >
